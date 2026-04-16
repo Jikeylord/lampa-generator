@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Lamp Generator 3D</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Three.js и плагины через CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Боковая панель управления -->
+        <aside class="controls-panel">
+            <header class="panel-header">
+                <h1>🔧 Lamp Generator 3D</h1>
+                <div class="action-buttons">
+                    <button id="btn-random" title="Случайные параметры">🎲 Рандом</button>
+                    <button id="btn-reset" title="Сбросить настройки">↺ Сброс</button>
+                    <button id="btn-export" title="Скачать STL">⬇ STL</button>
+                </div>
+            </header>
+
+            <!-- Пресеты -->
+            <section class="presets-section">
+                <h3>Пресеты</h3>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="classic">🏛 Классика</button>
+                    <button class="preset-btn" data-preset="spiral">🌀 Спираль</button>
+                    <button class="preset-btn" data-preset="voronoi">🧬 Вороной</button>
+                    <button class="preset-btn" data-preset="geometry">🔷 Геометрия</button>
+                    <button class="preset-btn" data-preset="flower">🌸 Цветок</button>
+                    <button class="preset-btn" data-preset="modern">⬜ Модерн</button>
+                    <button class="preset-btn" data-preset="tube">🔬 Тубус</button>
+                    <button class="preset-btn" data-preset="lantern">🏮 Фонарь</button>
+                </div>
+            </section>
+
+            <!-- Параметры формы -->
+            <section class="params-section">
+                <details open>
+                    <summary>🔷 Форма</summary>
+                    <div class="param-group">
+                        <label>
+                            Высота корпуса
+                            <input type="range" id="param-height" min="50" max="300" value="120">
+                            <span id="val-height">120</span>
+                        </label>
+                        <label>
+                            Нижний радиус
+                            <input type="range" id="param-radius-bottom" min="20" max="100" value="45">
+                            <span id="val-radius-bottom">45</span>
+                        </label>
+                        <label>
+                            Верхний радиус
+                            <input type="range" id="param-radius-top" min="10" max="80" value="35">
+                            <span id="val-radius-top">35</span>
+                        </label>
+                        <label>
+                            Сторон (сегментов)
+                            <input type="range" id="param-segments" min="6" max="64" value="24">
+                            <span id="val-segments">24</span>
+                        </label>
+                        <label>
+                            Толщина стенки
+                            <input type="range" id="param-wall-thickness" min="0.5" max="5" step="0.1" value="1.5">
+                            <span id="val-wall-thickness">1.5</span>
+                        </label>
+                        <label>
+                            Изгиб (curvature)
+                            <input type="range" id="param-curvature" min="-2" max="2" step="0.1" value="0">
+                            <span id="val-curvature">0</span>
+                        </label>
+                    </div>
+                </details>
+
+                <!-- Параметры узора -->
+                <details open>
+                    <summary>✦ Узор</summary>
+                    <div class="param-group">
+                        <label>
+                            Тип узора
+                            <select id="param-pattern-type">
+                                <option value="solid">Сплошной</option>
+                                <option value="spiral">Спираль</option>
+                                <option value="hexagons">Шестиугольники</option>
+                                <option value="circles">Круги</option>
+                                <option value="diamonds">Ромбы</option>
+                                <option value="waves">Волны</option>
+                                <option value="stars">Звёзды</option>
+                                <option value="voronoi">Вороной</option>
+                            </select>
+                        </label>
+                        <label>
+                            Размер ячейки
+                            <input type="range" id="param-cell-size" min="2" max="30" value="8">
+                            <span id="val-cell-size">8</span>
+                        </label>
+                        <label>
+                            Глубина прорези
+                            <input type="range" id="param-cut-depth" min="0" max="2" step="0.1" value="0.8">
+                            <span id="val-cut-depth">0.8</span>
+                        </label>
+                        <label id="label-spiral-turns">
+                            Спиральные витки
+                            <input type="range" id="param-spiral-turns" min="1" max="20" value="5">
+                            <span id="val-spiral-turns">5</span>
+                        </label>
+                    </div>
+                </details>
+
+                <!-- Параметры базы -->
+                <details>
+                    <summary>⚙ База</summary>
+                    <div class="param-group">
+                        <label>
+                            Внутренний рельеф
+                            <select id="param-inner-relief">
+                                <option value="none">Нет</option>
+                                <option value="ribs">Рёбра жёсткости</option>
+                            </select>
+                        </label>
+                        <label>
+                            Тип базы
+                            <select id="param-base-type">
+                                <option value="flat">Плоская</option>
+                                <option value="rounded">Закруглённая</option>
+                                <option value="expanded">Расширенная</option>
+                                <option value="ring">Кольцо</option>
+                            </select>
+                        </label>
+                        <label>
+                            Радиус базы
+                            <input type="range" id="param-base-radius" min="30" max="120" value="50">
+                            <span id="val-base-radius">50</span>
+                        </label>
+                        <label>
+                            Высота базы
+                            <input type="range" id="param-base-height" min="2" max="30" value="8">
+                            <span id="val-base-height">8</span>
+                        </label>
+                        <label>
+                            Отверстие для LED
+                            <input type="range" id="param-led-hole" min="0" max="40" value="20">
+                            <span id="val-led-hole">20</span>
+                        </label>
+                        <label>
+                            Крышка сверху
+                            <input type="checkbox" id="param-top-lid">
+                        </label>
+                        <label id="label-lid-radius">
+                            Радиус крышки
+                            <input type="range" id="param-lid-radius" min="10" max="60" value="30">
+                            <span id="val-lid-radius">30</span>
+                        </label>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Инфо-блок -->
+            <section class="info-section">
+                <h3>Информация:</h3>
+                <p>Граней: <span id="info-faces">~0</span> | Объём: <span id="info-volume">~0</span> см³</p>
+            </section>
+
+            <footer class="panel-footer">
+                <small>🖱 Вращение • Колёсико масштаб • ПКМ перемещение</small>
+            </footer>
+        </aside>
+
+        <!-- 3D вьюпорт -->
+        <main class="viewport-container">
+            <div id="viewport"></div>
+            <div class="viewport-overlay">
+                <span id="loading-indicator" class="hidden">⏳ Генерация...</span>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
